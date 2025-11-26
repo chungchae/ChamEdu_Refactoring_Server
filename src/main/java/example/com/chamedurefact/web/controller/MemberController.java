@@ -52,9 +52,8 @@ public class MemberController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<DefaultResponseDto<UserProfileDto>> getMyProfile(Authentication authentication) {
-        String email = (String) authentication.getPrincipal();
+    @GetMapping("/profile")
+    public ResponseEntity<DefaultResponseDto<UserProfileDto>> getMyProfile(@RequestParam String email) {
         UserProfileDto profile = memberService.getMyProfile(email);
 
         DefaultResponseDto<UserProfileDto> resp =

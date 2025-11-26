@@ -167,6 +167,7 @@ public class MemberService {
             //기존 회원
             User user = userOptional.get();
             response.setNewUser(!user.getIsProfileSetup());
+            response.setRole(user.getRole());
         } else {
             //신규 회원 (회원가입)
             User newUser = User.builder()
@@ -187,7 +188,7 @@ public class MemberService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         user.setNickname(profileDto.getNickname());
-        user.setMentor(profileDto.isMentor());
+        user.setRole(profileDto.getRole());
         user.setUniversity(profileDto.getUniversity());
         user.setMajor(Major.fromKoreanName(profileDto.getMajor()));
         user.setRecruitmentType(RecruitmentType.fromKoreanName(profileDto.getRecruitmentType()));
@@ -205,9 +206,9 @@ public class MemberService {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .university(user.getUniversity())
-                .major(user.getMajor() != null ? user.getMajor().name() : null)
-                .recruitmentType(user.getRecruitmentType() != null ? user.getRecruitmentType().name() : null)
-                .isMentor(user.isMentor())
+                .major(user.getMajor() != null ? user.getMajor().getKoreanName() : null)
+                .recruitmentType(user.getRecruitmentType() != null ? user.getRecruitmentType().getKoreanName() : null)
+                .role(user.getRole())
                 .build();
     }
 
@@ -241,9 +242,9 @@ public class MemberService {
                 .email(user.getEmail())   // 읽기 전용
                 .nickname(user.getNickname())
                 .university(user.getUniversity())
-                .major(user.getMajor() != null ? user.getMajor().name() : null)
-                .recruitmentType(user.getRecruitmentType() != null ? user.getRecruitmentType().name() : null)
-                .isMentor(user.isMentor())
+                .major(user.getMajor() != null ? user.getMajor().getKoreanName() : null)
+                .recruitmentType(user.getRecruitmentType() != null ? user.getRecruitmentType().getKoreanName() : null)
+                .role(user.getRole())
                 .build();
     }
 }
