@@ -7,15 +7,13 @@ import example.com.chamedurefact.domain.enums.Major;
 import example.com.chamedurefact.domain.enums.RecruitmentType;
 import example.com.chamedurefact.jwt.JwtTokenProvider;
 import example.com.chamedurefact.repository.UserRepository;
-import example.com.chamedurefact.web.dto.KakaoTokenResponseDto;
-import example.com.chamedurefact.web.dto.LoginResponseDto;
-import example.com.chamedurefact.web.dto.UpdateUserProfileRequest;
-import example.com.chamedurefact.web.dto.UserProfileDto;
+import example.com.chamedurefact.web.dto.*;
 import jakarta.transaction.Transactional;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.*;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +28,8 @@ public class MemberService {
     private UserRepository userRepository;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Value("${kakao.client-id}")
     private String clientId;
@@ -247,4 +247,60 @@ public class MemberService {
                 .role(user.getRole())
                 .build();
     }
+
+    // 이메일/비밀번호 회원가입
+    public void signupLocal(SignupRequestDto req) {
+        // 1) 이메일 중복 체크
+        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+        }
+
+        // 2) 닉네임 중복 체크 (원하면)
+        if (userRepository.existsByNickname(req.getNickname())) {
+            throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+        }
+
+        // 3) 비밀번호 해시
+        String encodedPw = passwordEncoder.encode(req.getPassword());
+
+        // 4) 유저 생성 (프로필 미완성 상태)
+        User user = User.builder()
+                .email(req.getEmail())
+                .nickname(req.getNickname())
+                .password(encodedPw)
+                .isProfileSetup(false)
+                .build();
+
+        userRepository.save(user);
+    }
+
+
+    // 이메일/비밀번호 로그인
+    public LoginResponseDto loginWithEmail(LoginEmailRequestDto dto) {
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일입니다."));
+
+        // 카카오 전용 계정인데 password가 없는 경우
+        if (user.getPassword() == null) {
+            throw new IllegalArgumentException("카카오 로그인을 사용하는 계정입니다.");
+        }
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        // JWT 발급
+        String token = jwtTokenProvider.createToken(user.getEmail());
+
+        LoginResponseDto res = new LoginResponseDto();
+        res.setEmail(user.getEmail());
+        res.setNickname(user.getNickname());
+        res.setToken(token);
+        res.setNewUser(!Boolean.TRUE.equals(user.getIsProfileSetup()));
+        res.setRole(user.getRole());
+
+        return res;
+    }
+
 }

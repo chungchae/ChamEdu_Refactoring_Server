@@ -32,6 +32,9 @@ public class User extends BaseEntity{
     private String email;
 
     @Column
+    private String password;
+
+    @Column
     private String role;
 
     @Column(length=20)

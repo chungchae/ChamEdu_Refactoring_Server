@@ -7,7 +7,7 @@ import lombok.*;
 @Data
 public class UserProfileDto {
     private String email;
-    private boolean isMentor;
+    private String role;
     private String nickname;
     private String university;
     private String major;

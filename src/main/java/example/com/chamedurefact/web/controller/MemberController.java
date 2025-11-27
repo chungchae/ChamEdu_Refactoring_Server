@@ -1,10 +1,7 @@
 package example.com.chamedurefact.web.controller;
 
 import example.com.chamedurefact.service.MemberService;
-import example.com.chamedurefact.web.dto.DefaultResponseDto;
-import example.com.chamedurefact.web.dto.LoginResponseDto;
-import example.com.chamedurefact.web.dto.UpdateUserProfileRequest;
-import example.com.chamedurefact.web.dto.UserProfileDto;
+import example.com.chamedurefact.web.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +19,20 @@ import java.util.*;
 public class MemberController {
     @Autowired
     private MemberService memberService;
+
+    // ✅ 이메일 회원가입
+    @PostMapping("/signup")
+    public ResponseEntity<?> signup(@RequestBody SignupRequestDto req) {
+        memberService.signupLocal(req);
+        return ResponseEntity.ok().build(); // 프론트는 바디 안 써서 200만 주면 됨
+    }
+
+    // ✅ 이메일 로그인
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginEmailRequestDto dto) {
+        LoginResponseDto res = memberService.loginWithEmail(dto);
+        return ResponseEntity.ok(res);
+    }
 
     @PostMapping("/kakao")
     @Operation(summary = "카카오 로그인(POST)", description = "프론트가 받은 code를 JSON으로 전달")

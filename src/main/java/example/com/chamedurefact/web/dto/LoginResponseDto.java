@@ -12,4 +12,5 @@ public class LoginResponseDto {
     private String nickname;
     private boolean newUser;
     private String token;
+    private String role;
 }
